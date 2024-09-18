@@ -37,12 +37,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <gtsam/linear/NoiseModel.h>
 #include <gtsam/navigation/CombinedImuFactor.h>
 #include <log++.h>
-#include <ros/ros.h>
-#include <sensor_msgs/PointCloud2.h>
+#include "rclcpp/rclcpp.hpp"
+#include <sensor_msgs/msg/point_cloud2.hpp>
 
 namespace rio {
 template <typename T>
-inline bool loadParam(const ros::NodeHandle& nh, const std::string& name,
+inline bool loadParam(const rclcpp::Node& nh, const std::string& name,
                       T* value) {
   if (!nh.getParam(name, *value)) {
     LOG(F, "Failed to read " << nh.resolveName(name).c_str() << ".");
@@ -52,7 +52,7 @@ inline bool loadParam(const ros::NodeHandle& nh, const std::string& name,
 }
 
 template <>
-inline bool loadParam<gtsam::Vector3>(const ros::NodeHandle& nh,
+inline bool loadParam<gtsam::Vector3>(const rclcpp::Node& nh,
                                       const std::string& name,
                                       gtsam::Vector3* value) {
   std::vector<double> vec;
@@ -67,7 +67,7 @@ inline bool loadParam<gtsam::Vector3>(const ros::NodeHandle& nh,
 }
 
 template <>
-inline bool loadParam<gtsam::Vector4>(const ros::NodeHandle& nh,
+inline bool loadParam<gtsam::Vector4>(const rclcpp::Node& nh,
                                       const std::string& name,
                                       gtsam::Vector4* value) {
   std::vector<double> vec;
@@ -83,7 +83,7 @@ inline bool loadParam<gtsam::Vector4>(const ros::NodeHandle& nh,
 
 template <>
 inline bool loadParam<std::optional<gtsam::Vector3>>(
-    const ros::NodeHandle& nh, const std::string& name,
+    const rclcpp::Node& nh, const std::string& name,
     std::optional<gtsam::Vector3>* value) {
   gtsam::Vector3 vec;
   if (!loadParam<gtsam::Vector3>(nh, name, &vec)) return false;
@@ -92,30 +92,30 @@ inline bool loadParam<std::optional<gtsam::Vector3>>(
 }
 
 bool loadPreintegratedCombinedMeasurements(
-    const ros::NodeHandle& nh, gtsam::PreintegratedCombinedMeasurements* imu);
+    const rclcpp::Node& nh, gtsam::PreintegratedCombinedMeasurements* imu);
 
-bool loadPriorNoisePose(const ros::NodeHandle& nh,
+bool loadPriorNoisePose(const rclcpp::Node& nh,
                         gtsam::SharedNoiseModel* noise);
 
-bool loadPriorNoiseVelocity(const ros::NodeHandle& nh,
+bool loadPriorNoiseVelocity(const rclcpp::Node& nh,
                             gtsam::SharedNoiseModel* noise);
 
-bool loadPriorNoiseImuBias(const ros::NodeHandle& nh,
+bool loadPriorNoiseImuBias(const rclcpp::Node& nh,
                            gtsam::SharedNoiseModel* noise);
 
-bool loadNoiseRadarRadialVelocity(const ros::NodeHandle& nh,
+bool loadNoiseRadarRadialVelocity(const rclcpp::Node& nh,
                                   gtsam::SharedNoiseModel* noise);
 
-bool loadNoiseRadarTrack(const ros::NodeHandle& nh,
+bool loadNoiseRadarTrack(const rclcpp::Node& nh,
                          gtsam::SharedNoiseModel* noise);
 
-bool loadNoiseLoopClosureT(const ros::NodeHandle& nh,
+bool loadNoiseLoopClosureT(const rclcpp::Node& nh,
                            gtsam::SharedNoiseModel* noise);
 
-bool loadNoiseZeroVelocityPrior(const ros::NodeHandle& nh,
+bool loadNoiseZeroVelocityPrior(const rclcpp::Node& nh,
                                 gtsam::SharedNoiseModel* noise);
 
-bool loadNoiseBaroHeight(const ros::NodeHandle& nh,
+bool loadNoiseBaroHeight(const rclcpp::Node& nh,
                          gtsam::SharedNoiseModel* noise);
 
 struct CfarDetection {
@@ -134,7 +134,7 @@ struct CfarDetection {
 };
 
 std::vector<CfarDetection> parseRadarMsg(
-    const sensor_msgs::PointCloud2Ptr& msg);
+    const sensor_msgs::msg::PointCloud2Ptr& msg);
 
 double computeBaroHeight(double pressure);
 

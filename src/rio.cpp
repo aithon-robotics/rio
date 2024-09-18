@@ -33,19 +33,19 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <cmath>
 
-#include <geometry_msgs/Vector3Stamped.h>
+#include <geometry_msgs/msg/vector3_stamped.hpp>
 #include <log++.h>
-#include <nav_msgs/Odometry.h>
+#include <nav_msgs/msg/odometry.hpp>
 #include <tf2_eigen/tf2_eigen.h>
 
-#include "rio/DopplerResidual.h"
-#include "rio/Timing.h"
+#include <rio/msg/doppler_residual.hpp>
+#include <rio/msg/timing.hpp>
 #include "rio/common.h"
 
 using namespace rio;
 using namespace gtsam;
 
-Rio::Rio(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private)
+Rio::Rio(const rclcpp::Node& nh, const rclcpp::Node& nh_private)
     : nh_(nh), nh_private_(nh_private) {}
 
 bool Rio::init() {
@@ -64,19 +64,19 @@ bool Rio::init() {
       nh_.subscribe("baro/pressure", queue_size, &Rio::pressureCallback, this);
 
   // Publishers
-  odom_navigation_pub_ = nh_private_.advertise<nav_msgs::Odometry>(
+  odom_navigation_pub_ = nh_private_.advertise<nav_msgs::msg::Odometry>(
       "odometry_navigation", queue_size);
-  odom_optimizer_pub_ = nh_private_.advertise<nav_msgs::Odometry>(
+  odom_optimizer_pub_ = nh_private_.advertise<nav_msgs::msg::Odometry>(
       "odometry_optimizer", queue_size);
-  timing_pub_ = nh_private_.advertise<rio::Timing>("timing", 100);
+  timing_pub_ = nh_private_.advertise<rio::msg::Timing>("timing", 100);
   acc_bias_pub_ =
-      nh_private_.advertise<geometry_msgs::Vector3Stamped>("bias_acc", 100);
+      nh_private_.advertise<geometry_msgs::msg::Vector3Stamped>("bias_acc", 100);
   gyro_bias_pub_ =
-      nh_private_.advertise<geometry_msgs::Vector3Stamped>("bias_gyro", 100);
+      nh_private_.advertise<geometry_msgs::msg::Vector3Stamped>("bias_gyro", 100);
   doppler_residual_pub_ =
-      nh_private_.advertise<rio::DopplerResidual>("doppler_residual", 100);
+      nh_private_.advertise<rio::msg::DopplerResidual>("doppler_residual", 100);
   baro_residual_pub_ =
-      nh_private_.advertise<rio::DopplerResidual>("baro_residual", 100);
+      nh_private_.advertise<rio::msg::DopplerResidual>("baro_residual", 100);
 
   // IMU integration
   PreintegratedCombinedMeasurements integrator;
@@ -169,7 +169,7 @@ bool Rio::init() {
   return true;
 }
 
-void Rio::imuRawCallback(const sensor_msgs::ImuConstPtr& msg) {
+void Rio::imuRawCallback(const sensor_msgs::msg::Imu::ConstSharedPtr& msg) {
   LOG_FIRST(I, 1, "Received first raw IMU message.");
   // Initialize.
   if (initial_state_->imu == nullptr) {
@@ -205,13 +205,13 @@ void Rio::imuRawCallback(const sensor_msgs::ImuConstPtr& msg) {
 
     for (const auto& time : timing) timing_pub_.publish(time.second);
 
-    geometry_msgs::Vector3Stamped bias_acc;
+    geometry_msgs::msg::Vector3Stamped bias_acc;
     tf2::toMsg(propagation_.back().getLatestState()->getBias().accelerometer(),
                bias_acc.vector);
     bias_acc.header = propagation_.back().getLatestState()->imu->header;
     acc_bias_pub_.publish(bias_acc);
 
-    geometry_msgs::Vector3Stamped bias_gyro;
+    geometry_msgs::msg::Vector3Stamped bias_gyro;
     tf2::toMsg(propagation_.back().getLatestState()->getBias().gyroscope(),
                bias_gyro.vector);
     bias_gyro.header = propagation_.back().getLatestState()->imu->header;
@@ -219,7 +219,7 @@ void Rio::imuRawCallback(const sensor_msgs::ImuConstPtr& msg) {
   }
 }
 
-void Rio::imuFilterCallback(const sensor_msgs::ImuConstPtr& msg) {
+void Rio::imuFilterCallback(const sensor_msgs::msg::Imu::ConstSharedPtr& msg) {
   LOG_FIRST(I, 1, "Received first filtered IMU message.");
   Eigen::Quaterniond q_IB;
   tf2::fromMsg(msg->orientation, q_IB);
@@ -236,7 +236,7 @@ void Rio::imuFilterCallback(const sensor_msgs::ImuConstPtr& msg) {
   }
 }
 
-void Rio::cfarDetectionsCallback(const sensor_msgs::PointCloud2Ptr& msg) {
+void Rio::cfarDetectionsCallback(const sensor_msgs::msg::PointCloud2Ptr& msg) {
   LOG_FIRST(I, 1, "Received first CFAR detections.");
   if (propagation_.empty()) {
     LOG(W, "No propagation, skipping CFAR detections.");
@@ -248,7 +248,7 @@ void Rio::cfarDetectionsCallback(const sensor_msgs::PointCloud2Ptr& msg) {
     auto R_T_RB_tf = tf_buffer_.lookupTransform(
         msg->header.frame_id,
         propagation_.back().getLatestState()->imu->header.frame_id,
-        ros::Time(0), ros::Duration(0.0));
+        rclcpp::Time(0), rclcpp::Duration(0.0));
     Eigen::Affine3d R_T_RB_eigen = tf2::transformToEigen(R_T_RB_tf.transform);
     B_T_BR = Pose3(R_T_RB_eigen.inverse().matrix());
     LOG_FIRST(I, 1,
@@ -324,7 +324,7 @@ void Rio::cfarDetectionsCallback(const sensor_msgs::PointCloud2Ptr& msg) {
   }
 }
 
-void Rio::pressureCallback(const sensor_msgs::FluidPressurePtr& msg) {
+void Rio::pressureCallback(const sensor_msgs::msg::FluidPressurePtr& msg) {
   LOG_FIRST(I, 1, "Received first pressure measurement.");
   if (!baro_active_) {
     LOG_FIRST(I, 1, "Baro not active, skipping pressure measurements.");
@@ -371,7 +371,7 @@ void Rio::pressureCallback(const sensor_msgs::FluidPressurePtr& msg) {
   // baro_residual_pub_.publish(residual_msg);
 }
 
-std::deque<Propagation>::iterator Rio::splitPropagation(const ros::Time& t) {
+std::deque<Propagation>::iterator Rio::splitPropagation(const rclcpp::Time& t) {
   auto it = propagation_.begin();
   for (; it != propagation_.end(); ++it) {
     Propagation propagation_to_t, propagation_from_t;

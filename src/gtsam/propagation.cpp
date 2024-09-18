@@ -58,11 +58,11 @@ Propagation::Propagation(const std::vector<State::ConstPtr>& initial_states,
       first_state_idx_(first_state_idx),
       last_state_idx_(last_state_idx) {}
 
-bool Propagation::addImuMeasurement(const sensor_msgs::Imu& msg) {
-  return addImuMeasurement(sensor_msgs::ImuConstPtr(new sensor_msgs::Imu(msg)));
+bool Propagation::addImuMeasurement(const sensor_msgs::msg::Imu& msg) {
+  return addImuMeasurement(sensor_msgs::msg::Imu::ConstSharedPtr(new sensor_msgs::msg::Imu(msg)));
 }
 
-bool Propagation::addImuMeasurement(const sensor_msgs::ImuConstPtr& msg) {
+bool Propagation::addImuMeasurement(const sensor_msgs::msg::Imu::ConstSharedPtr& msg) {
   if (states_.empty()) {
     LOG(E, "No initial state, skipping IMU integration.");
     return false;
@@ -99,7 +99,7 @@ bool Propagation::addImuMeasurement(const sensor_msgs::ImuConstPtr& msg) {
   return true;
 }
 
-bool Propagation::split(const ros::Time& t, uint64_t* split_idx,
+bool Propagation::split(const rclcpp::Time& t, uint64_t* split_idx,
                         Propagation* propagation_to_t,
                         Propagation* propagation_from_t) const {
   if (states_.empty()) {
@@ -120,7 +120,7 @@ bool Propagation::split(const ros::Time& t, uint64_t* split_idx,
   }
   auto state_1 =
       std::lower_bound(states_.begin(), states_.end(), t,
-                       [](const State::ConstPtr& state, const ros::Time& t) {
+                       [](const State::ConstPtr& state, const rclcpp::Time& t) {
                          return state->imu->header.stamp < t;
                        });
   if (state_1 == states_.begin()) {
@@ -134,7 +134,7 @@ bool Propagation::split(const ros::Time& t, uint64_t* split_idx,
   auto state_0 = std::prev(state_1);
 
   // Create ZOH IMU message to propagate to t.
-  sensor_msgs::Imu imu;
+  sensor_msgs::msg::Imu imu;
   imu.header.stamp = t;
   imu.header.frame_id = (*state_1)->imu->header.frame_id;
   imu.linear_acceleration = (*state_1)->imu->linear_acceleration;

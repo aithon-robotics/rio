@@ -34,15 +34,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <memory>
 #include <optional>
 
-#include <geometry_msgs/TransformStamped.h>
-#include <geometry_msgs/Vector3Stamped.h>
+#include <geometry_msgs/msg/transform_stamped.hpp>
+#include <geometry_msgs/msg/vector3_stamped.hpp>
 #include <gtsam/base/Vector.h>
 #include <gtsam/geometry/Rot3.h>
 #include <gtsam/navigation/CombinedImuFactor.h>
 #include <gtsam/navigation/ImuBias.h>
 #include <gtsam/navigation/NavState.h>
-#include <nav_msgs/Odometry.h>
-#include <sensor_msgs/Imu.h>
+#include <nav_msgs/msg/odometry.hpp>
+#include <sensor_msgs/msg/imu.hpp>
 
 namespace rio {
 
@@ -53,11 +53,11 @@ struct State {
   State() = delete;
   State(const std::string& odom_frame_id, const gtsam::Point3& I_p_IB,
         const gtsam::Rot3& R_IB, const gtsam::Vector3& I_v_IB,
-        const sensor_msgs::ImuConstPtr& imu,
+        const sensor_msgs::msg::Imu::ConstSharedPtr& imu,
         const gtsam::PreintegratedCombinedMeasurements& integrator,
         const std::optional<double>& baro_height_bias = std::nullopt);
   State(const std::string& odom_frame_id, const gtsam::Pose3& I_T_IB,
-        const gtsam::Vector3& I_v_IB, const sensor_msgs::ImuConstPtr& imu,
+        const gtsam::Vector3& I_v_IB, const sensor_msgs::msg::Imu::ConstSharedPtr& imu,
         const gtsam::PreintegratedCombinedMeasurements& integrator,
         const std::optional<double>& baro_height_bias = std::nullopt);
 
@@ -70,15 +70,15 @@ struct State {
   gtsam::Point3 I_p_IB;
   gtsam::Rot3 R_IB;
   gtsam::Vector3 I_v_IB;
-  sensor_msgs::ImuConstPtr imu;
+  sensor_msgs::msg::Imu::ConstSharedPtr imu;
   gtsam::PreintegratedCombinedMeasurements integrator;
 
   std::optional<double> baro_height_bias;
 
-  nav_msgs::Odometry getOdometry() const;
-  geometry_msgs::TransformStamped getTransform() const;
-  geometry_msgs::Vector3Stamped getBiasAcc() const;
-  geometry_msgs::Vector3Stamped getBiasGyro() const;
+  nav_msgs::msg::Odometry getOdometry() const;
+  geometry_msgs::msg::TransformStamped getTransform() const;
+  geometry_msgs::msg::Vector3Stamped getBiasAcc() const;
+  geometry_msgs::msg::Vector3Stamped getBiasGyro() const;
   gtsam::NavState getNavState() const;
   gtsam::Pose3 getPose() const;
   gtsam::imuBias::ConstantBias getBias() const;

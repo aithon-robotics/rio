@@ -39,7 +39,7 @@ using namespace gtsam;
 
 State::State(const std::string& odom_frame_id, const gtsam::Point3& I_p_IB,
              const gtsam::Rot3& R_IB, const gtsam::Vector3& I_v_IB,
-             const sensor_msgs::ImuConstPtr& imu,
+             const sensor_msgs::msg::Imu::ConstSharedPtr& imu,
              const gtsam::PreintegratedCombinedMeasurements& integrator,
              const std::optional<double>& baro_height_bias)
     : odom_frame_id(odom_frame_id),
@@ -51,14 +51,14 @@ State::State(const std::string& odom_frame_id, const gtsam::Point3& I_p_IB,
       baro_height_bias(baro_height_bias) {}
 
 State::State(const std::string& odom_frame_id, const gtsam::Pose3& I_T_IB,
-             const gtsam::Vector3& I_v_IB, const sensor_msgs::ImuConstPtr& imu,
+             const gtsam::Vector3& I_v_IB, const sensor_msgs::msg::Imu::ConstSharedPtr& imu,
              const gtsam::PreintegratedCombinedMeasurements& integrator,
              const std::optional<double>& baro_height_bias)
     : State(odom_frame_id, I_T_IB.translation(), I_T_IB.rotation(), I_v_IB, imu,
             integrator, baro_height_bias) {}
 
-nav_msgs::Odometry State::getOdometry() const {
-  nav_msgs::Odometry odom;
+nav_msgs::msg::Odometry State::getOdometry() const {
+  nav_msgs::msg::Odometry odom;
   odom.header.stamp = imu->header.stamp;
   odom.header.frame_id = odom_frame_id;
   odom.child_frame_id = imu->header.frame_id;
@@ -69,8 +69,8 @@ nav_msgs::Odometry State::getOdometry() const {
   return odom;
 }
 
-geometry_msgs::TransformStamped State::getTransform() const {
-  geometry_msgs::TransformStamped transform;
+geometry_msgs::msg::TransformStamped State::getTransform() const {
+  geometry_msgs::msg::TransformStamped transform;
   transform.header.stamp = imu->header.stamp;
   transform.header.frame_id = odom_frame_id;
   transform.child_frame_id = imu->header.frame_id;
@@ -79,16 +79,16 @@ geometry_msgs::TransformStamped State::getTransform() const {
   return transform;
 }
 
-geometry_msgs::Vector3Stamped State::getBiasAcc() const {
-  geometry_msgs::Vector3Stamped bias_acc;
+geometry_msgs::msg::Vector3Stamped State::getBiasAcc() const {
+  geometry_msgs::msg::Vector3Stamped bias_acc;
   bias_acc.header.stamp = imu->header.stamp;
   bias_acc.header.frame_id = imu->header.frame_id;
   tf2::toMsg(integrator.biasHat().accelerometer(), bias_acc.vector);
   return bias_acc;
 }
 
-geometry_msgs::Vector3Stamped State::getBiasGyro() const {
-  geometry_msgs::Vector3Stamped bias_gyro;
+geometry_msgs::msg::Vector3Stamped State::getBiasGyro() const {
+  geometry_msgs::msg::Vector3Stamped bias_gyro;
   bias_gyro.header.stamp = imu->header.stamp;
   bias_gyro.header.frame_id = imu->header.frame_id;
   tf2::toMsg(integrator.biasHat().gyroscope(), bias_gyro.vector);

@@ -42,12 +42,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <gtsam/slam/BetweenFactor.h>
 #include <gtsam/slam/expressions.h>
 #include <log++.h>
-#include <nav_msgs/Odometry.h>
-#include <ros/ros.h>
+#include <nav_msgs/msg/odometry.hpp>
+#include "rclcpp/rclcpp.hpp"
 #include <rosbag/bag.h>
 #include <rosbag/view.h>
-#include <sensor_msgs/Imu.h>
-#include <sensor_msgs/PointCloud2.h>
+#include <sensor_msgs/msg/imu.hpp>
+#include <sensor_msgs/msg/point_cloud2.hpp>
 #include <tf2_eigen/tf2_eigen.h>
 
 #include "rio/common.h"
@@ -147,8 +147,8 @@ int main(int argc, char** argv) {
   rosbag::View view(bag);
   for (const rosbag::MessageInstance& msg : view) {
     if (msg.getTopic() == odometry_topic) {
-      nav_msgs::OdometryConstPtr odom_msg =
-          msg.instantiate<nav_msgs::Odometry>();
+      nav_msgs::msg::Odometry::ConstSharedPtr odom_msg =
+          msg.instantiate<nav_msgs::msg::Odometry>();
       Eigen::Quaterniond q_IB;
       tf2::fromMsg(odom_msg->pose.pose.orientation, q_IB);
       Vector3 I_t_IB;
@@ -161,15 +161,15 @@ int main(int argc, char** argv) {
       odometry_measurement.I_v_IB = Rot3(q_IB).rotate(B_v_IB);
       odometry_measurements.push_back(odometry_measurement);
     } else if (msg.getTopic() == imu_topic) {
-      sensor_msgs::ImuConstPtr imu_msg = msg.instantiate<sensor_msgs::Imu>();
+      sensor_msgs::msg::Imu::ConstSharedPtr imu_msg = msg.instantiate<sensor_msgs::msg::Imu>();
       ImuMeasurement imu_measurement;
       imu_measurement.t = imu_msg->header.stamp.toSec();
       tf2::fromMsg(imu_msg->linear_acceleration, imu_measurement.B_a_IB);
       tf2::fromMsg(imu_msg->angular_velocity, imu_measurement.B_omega_IB);
       imu_raw_measurements.push_back(imu_measurement);
     } else if (msg.getTopic() == radar_topic) {
-      sensor_msgs::PointCloud2Ptr radar_msg =
-          msg.instantiate<sensor_msgs::PointCloud2>();
+      sensor_msgs::msg::PointCloud2Ptr radar_msg =
+          msg.instantiate<sensor_msgs::msg::PointCloud2>();
       auto detections = parseRadarMsg(radar_msg);
       RadarMeasurement radar_measurement;
       radar_measurement.t = radar_msg->header.stamp.toSec();
@@ -388,15 +388,15 @@ int main(int argc, char** argv) {
   LOG(I, "B: " << result.at<imuBias::ConstantBias>(B(0)));
 
   // Save rosbag.
-  // nav_msgs::Odometry for state
+  // nav_msgs::msg::Odometry for state
   // Vector3Stamped for biases
   std::string out_bag_path =
       bag_path.substr(0, bag_path.size() - 4) + "_calibrated.bag";
   rosbag::Bag out_bag;
   out_bag.open(out_bag_path, rosbag::bagmode::Write);
   for (size_t i = 0; i <= last_idx; ++i) {
-    nav_msgs::Odometry odom_msg;
-    odom_msg.header.stamp = ros::Time(idx_stamp_map[i]);
+    nav_msgs::msg::Odometry odom_msg;
+    odom_msg.header.stamp = rclcpp::Time(idx_stamp_map[i]);
     odom_msg.header.frame_id = "odom";
     odom_msg.child_frame_id = "bmi088";
     odom_msg.pose.pose.position =
@@ -406,19 +406,19 @@ int main(int argc, char** argv) {
     tf2::toMsg(
         result.at<Pose3>(X(i)).rotation().unrotate(result.at<Vector3>(V(i))),
         odom_msg.twist.twist.linear);
-    out_bag.write("/rio/odometry_navigation", ros::Time(idx_stamp_map[i]),
+    out_bag.write("/rio/odometry_navigation", rclcpp::Time(idx_stamp_map[i]),
                   odom_msg);
 
-    geometry_msgs::Vector3Stamped bias_msg;
-    bias_msg.header.stamp = ros::Time(idx_stamp_map[i]);
+    geometry_msgs::msg::Vector3Stamped bias_msg;
+    bias_msg.header.stamp = rclcpp::Time(idx_stamp_map[i]);
     bias_msg.header.frame_id = "bmi088";
     tf2::toMsg(result.at<imuBias::ConstantBias>(B(i)).gyroscope(),
                bias_msg.vector);
-    out_bag.write("/rio/bias_gyro", ros::Time(idx_stamp_map[i]), bias_msg);
+    out_bag.write("/rio/bias_gyro", rclcpp::Time(idx_stamp_map[i]), bias_msg);
 
     tf2::toMsg(result.at<imuBias::ConstantBias>(B(i)).accelerometer(),
                bias_msg.vector);
-    out_bag.write("/rio/bias_acc", ros::Time(idx_stamp_map[i]), bias_msg);
+    out_bag.write("/rio/bias_acc", rclcpp::Time(idx_stamp_map[i]), bias_msg);
   }
 
   return 0;

@@ -43,7 +43,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <gtsam/nonlinear/Values.h>
 #include <gtsam_unstable/nonlinear/IncrementalFixedLagSmoother.h>
 
-#include "rio/Timing.h"
+#include <rio/msg/timing.hpp>
 #include "rio/gtsam/propagation.h"
 
 namespace rio {
@@ -89,7 +89,7 @@ class Optimization {
 
   void updateTiming(
       const std::shared_ptr<const ::gtsam::internal::TimingOutline>& variable,
-      const std::string& label, const ros::Time& stamp);
+      const std::string& label, const rclcpp::Time& stamp);
 
   gtsam::NonlinearFactorGraph new_graph_;
   gtsam::Values new_values_;

@@ -29,18 +29,18 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <ros/ros.h>
+#include "rclcpp/rclcpp.hpp"
 
 #include "rio/rio.h"
 
 int main(int argc, char** argv) {
-  ros::init(argc, argv, "rio_node");
-  ros::NodeHandle nh;
-  ros::NodeHandle nh_private("~");
+  rclcpp::init(argc, argv);
+  auto nh = rclcpp::Node::make_shared("rio_node");
+  rclcpp::Node nh_private("~");
 
   rio::Rio rio(nh, nh_private);
   if (!rio.init()) return 1;
 
-  ros::spin();
+  rclcpp::spin(node);
   return 0;
 }

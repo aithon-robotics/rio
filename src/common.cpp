@@ -37,7 +37,7 @@ using namespace rio;
 using namespace gtsam;
 
 bool rio::loadPreintegratedCombinedMeasurements(
-    const ros::NodeHandle& nh, PreintegratedCombinedMeasurements* imu) {
+    const rclcpp::Node& nh, PreintegratedCombinedMeasurements* imu) {
   assert(imu);
   double bias_acc_sigma = 0.0, bias_omega_sigma = 0.0, bias_acc_int_sigma = 0.0,
          bias_omega_int_sigma = 0.0, acc_sigma = 0.0, integration_sigma = 0.0,
@@ -80,7 +80,7 @@ bool rio::loadPreintegratedCombinedMeasurements(
   return true;
 }
 
-bool rio::loadPriorNoisePose(const ros::NodeHandle& nh,
+bool rio::loadPriorNoisePose(const rclcpp::Node& nh,
                              SharedNoiseModel* noise) {
   assert(noise);
   Vector3 prior_noise_R_IB, prior_noise_I_p_IB;
@@ -95,7 +95,7 @@ bool rio::loadPriorNoisePose(const ros::NodeHandle& nh,
   return true;
 }
 
-bool rio::loadPriorNoiseVelocity(const ros::NodeHandle& nh,
+bool rio::loadPriorNoiseVelocity(const rclcpp::Node& nh,
                                  SharedNoiseModel* noise) {
   assert(noise);
   Vector3 prior_noise_I_v_IB;
@@ -107,7 +107,7 @@ bool rio::loadPriorNoiseVelocity(const ros::NodeHandle& nh,
   return true;
 }
 
-bool rio::loadPriorNoiseImuBias(const ros::NodeHandle& nh,
+bool rio::loadPriorNoiseImuBias(const rclcpp::Node& nh,
                                 SharedNoiseModel* noise) {
   assert(noise);
   Vector3 prior_noise_bias_acc, prior_noise_bias_gyro;
@@ -122,7 +122,7 @@ bool rio::loadPriorNoiseImuBias(const ros::NodeHandle& nh,
   return true;
 }
 
-bool rio::loadNoiseRadarRadialVelocity(const ros::NodeHandle& nh,
+bool rio::loadNoiseRadarRadialVelocity(const rclcpp::Node& nh,
                                        SharedNoiseModel* noise) {
   assert(noise);
   double noise_radar_doppler = 0.0;
@@ -201,7 +201,7 @@ bool rio::loadNoiseRadarRadialVelocity(const ros::NodeHandle& nh,
   return true;
 }
 
-bool rio::loadNoiseRadarTrack(const ros::NodeHandle& nh,
+bool rio::loadNoiseRadarTrack(const rclcpp::Node& nh,
                               SharedNoiseModel* noise) {
   assert(noise);
   Vector3 noise_radar_track;
@@ -214,14 +214,14 @@ bool rio::loadNoiseRadarTrack(const ros::NodeHandle& nh,
 }
 
 std::vector<CfarDetection> rio::parseRadarMsg(
-    const sensor_msgs::PointCloud2Ptr& msg) {
+    const sensor_msgs::msg::PointCloud2Ptr& msg) {
   std::vector<CfarDetection> detections(msg->height * msg->width);
-  sensor_msgs::PointCloud2Iterator<float> iter_x(*msg, "x");
-  sensor_msgs::PointCloud2Iterator<float> iter_y(*msg, "y");
-  sensor_msgs::PointCloud2Iterator<float> iter_z(*msg, "z");
-  sensor_msgs::PointCloud2Iterator<float> iter_doppler(*msg, "doppler");
-  sensor_msgs::PointCloud2Iterator<int16_t> iter_snr(*msg, "snr");
-  sensor_msgs::PointCloud2Iterator<int16_t> iter_noise(*msg, "noise");
+  sensor_msgs::msg::PointCloud2Iterator<float> iter_x(*msg, "x");
+  sensor_msgs::msg::PointCloud2Iterator<float> iter_y(*msg, "y");
+  sensor_msgs::msg::PointCloud2Iterator<float> iter_z(*msg, "z");
+  sensor_msgs::msg::PointCloud2Iterator<float> iter_doppler(*msg, "doppler");
+  sensor_msgs::msg::PointCloud2Iterator<int16_t> iter_snr(*msg, "snr");
+  sensor_msgs::msg::PointCloud2Iterator<int16_t> iter_noise(*msg, "noise");
   for (auto& detection : detections) {
     detection.x = *(iter_x);
     detection.y = *(iter_y);
@@ -245,7 +245,7 @@ double rio::computeBaroHeight(double pressure) {
          (-0.00649);
 }
 
-bool rio::loadNoiseLoopClosureT(const ros::NodeHandle& nh,
+bool rio::loadNoiseLoopClosureT(const rclcpp::Node& nh,
                                 gtsam::SharedNoiseModel* noise) {
   assert(noise);
   Vector3 noise_loop_closure_p;
@@ -261,7 +261,7 @@ bool rio::loadNoiseLoopClosureT(const ros::NodeHandle& nh,
   return true;
 }
 
-bool rio::loadNoiseZeroVelocityPrior(const ros::NodeHandle& nh,
+bool rio::loadNoiseZeroVelocityPrior(const rclcpp::Node& nh,
                                      gtsam::SharedNoiseModel* noise) {
   assert(noise);
   double noise_zero_velocity_prior;
@@ -274,7 +274,7 @@ bool rio::loadNoiseZeroVelocityPrior(const ros::NodeHandle& nh,
   return true;
 }
 
-bool rio::loadNoiseBaroHeight(const ros::NodeHandle& nh,
+bool rio::loadNoiseBaroHeight(const rclcpp::Node& nh,
                               gtsam::SharedNoiseModel* noise) {
   assert(noise);
   double noise_baro_height = 0.0;

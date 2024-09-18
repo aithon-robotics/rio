@@ -37,7 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "rio/common.h"
 #include "rio/gtsam/landmark_tracker.h"
 #include "rio/gtsam/state.h"
-#include "sensor_msgs/Imu.h"
+#include <sensor_msgs/msg/imu.hpp>
 
 namespace rio {
 
@@ -52,11 +52,11 @@ class Propagation {
   Propagation(const std::vector<State::ConstPtr>& initial_states,
               const uint64_t first_state_idx,
               const std::optional<uint64_t>& last_state_idx = std::nullopt);
-  bool addImuMeasurement(const sensor_msgs::ImuConstPtr& msg);
-  bool addImuMeasurement(const sensor_msgs::Imu& msg);
+  bool addImuMeasurement(const sensor_msgs::msg::Imu::ConstSharedPtr& msg);
+  bool addImuMeasurement(const sensor_msgs::msg::Imu& msg);
   inline State::ConstPtr getLatestState() const { return states_.back(); }
   inline State::ConstPtr getFirstState() const { return states_.front(); }
-  bool split(const ros::Time& t, uint64_t* split_idx,
+  bool split(const rclcpp::Time& t, uint64_t* split_idx,
              Propagation* propagation_to_t,
              Propagation* propagation_from_t) const;
   bool repropagate(const State& initial_state);

@@ -36,11 +36,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vector>
 
 #include <gtsam/linear/NoiseModel.h>
-#include <ros/ros.h>
-#include <sensor_msgs/FluidPressure.h>
-#include <sensor_msgs/Imu.h>
-#include <sensor_msgs/PointCloud2.h>
-#include <std_msgs/Header.h>
+#include "rclcpp/rclcpp.hpp"
+#include <sensor_msgs/msg/fluid_pressure.hpp>
+#include <sensor_msgs/msg/imu.hpp>
+#include <sensor_msgs/msg/point_cloud2.hpp>
+#include <std_msgs/msg/header.hpp>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_ros/transform_listener.h>
 
@@ -57,21 +57,21 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace rio {
 class Rio {
  public:
-  Rio(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private);
+  Rio(const rclcpp::Node& nh, const rclcpp::Node& nh_private);
   bool init();
 
  private:
-  ros::NodeHandle nh_;
-  ros::NodeHandle nh_private_;
+  rclcpp::Node nh_;
+  rclcpp::Node nh_private_;
 
   ros::Subscriber imu_raw_sub_;
   ros::Subscriber imu_filter_sub_;
   ros::Subscriber radar_cfar_sub_;
   ros::Subscriber baro_sub_;
-  void imuRawCallback(const sensor_msgs::ImuConstPtr& msg);
-  void imuFilterCallback(const sensor_msgs::ImuConstPtr& msg);
-  void cfarDetectionsCallback(const sensor_msgs::PointCloud2Ptr& msg);
-  void pressureCallback(const sensor_msgs::FluidPressurePtr& msg);
+  void imuRawCallback(const sensor_msgs::msg::Imu::ConstSharedPtr& msg);
+  void imuFilterCallback(const sensor_msgs::msg::Imu::ConstSharedPtr& msg);
+  void cfarDetectionsCallback(const sensor_msgs::msg::PointCloud2Ptr& msg);
+  void pressureCallback(const sensor_msgs::msg::FluidPressurePtr& msg);
 
   ros::Publisher odom_navigation_pub_;
   ros::Publisher odom_optimizer_pub_;
@@ -85,9 +85,9 @@ class Rio {
       "odom", gtsam::Z_3x1, gtsam::Rot3(), gtsam::Z_3x1, nullptr,
       gtsam::PreintegratedCombinedMeasurements())};
   std::deque<Propagation> propagation_;
-  ros::Duration max_dead_reckoning_duration_{60.0};
+  rclcpp::Duration max_dead_reckoning_duration_{60.0};
 
-  std::deque<Propagation>::iterator splitPropagation(const ros::Time& t);
+  std::deque<Propagation>::iterator splitPropagation(const rclcpp::Time& t);
 
   Optimization optimization_;
   gtsam::SharedNoiseModel prior_noise_model_I_T_IB_;
